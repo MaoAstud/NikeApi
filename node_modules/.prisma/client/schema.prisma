@@ -1,0 +1,77 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model carritocompras {
+  carrito_id     Int              @id @default(autoincrement())
+  id_usuario     Int?
+  fecha_creacion DateTime?        @default(now()) @db.Timestamp(6)
+  usuarios       usuarios?        @relation(fields: [id_usuario], references: [usuario_id], onDelete: NoAction, onUpdate: NoAction)
+  detallecarrito detallecarrito[]
+}
+
+model categorias {
+  id_categoria          Int          @id @default(autoincrement())
+  nombre_categoria      String?      @db.VarChar(100)
+  descripcion_categoria String?
+  categoria_padre       Int?
+  categorias            categorias?  @relation("categoriasTocategorias", fields: [categoria_padre], references: [id_categoria], onDelete: NoAction, onUpdate: NoAction)
+  other_categorias      categorias[] @relation("categoriasTocategorias")
+  productos             productos[]
+}
+
+model comentariosvaloraciones {
+  comentario_id    Int        @id @default(autoincrement())
+  id_usuario       Int?
+  id_producto      Int?
+  texto_comentario String?
+  calificacion     Int?
+  fecha_comentario DateTime?  @default(now()) @db.Timestamp(6)
+  productos        productos? @relation(fields: [id_producto], references: [producto_id], onDelete: NoAction, onUpdate: NoAction)
+  usuarios         usuarios?  @relation(fields: [id_usuario], references: [usuario_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model detallecarrito {
+  detalle_carrito_id Int             @id @default(autoincrement())
+  id_carrito         Int?
+  id_producto        Int?
+  cantidad_producto  Int?
+  fecha_agregado     DateTime?       @default(now()) @db.Timestamp(6)
+  carritocompras     carritocompras? @relation(fields: [id_carrito], references: [carrito_id], onDelete: NoAction, onUpdate: NoAction)
+  productos          productos?      @relation(fields: [id_producto], references: [producto_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model productos {
+  producto_id             Int                       @id @default(autoincrement())
+  nombre_producto         String?                   @db.VarChar(255)
+  descripcion_producto    String?
+  precio_unitario         Decimal?                  @db.Decimal(10, 2)
+  id_categoria            Int?
+  talla_zapato            String?                   @db.VarChar(20)
+  color_zapato            String?                   @db.VarChar(50)
+  material_zapato         String?                   @db.VarChar(50)
+  url_imagen              String?
+  cantidad_inventario     Int?
+  fecha_creacion          DateTime?                 @default(now()) @db.Timestamp(6)
+  comentariosvaloraciones comentariosvaloraciones[]
+  detallecarrito          detallecarrito[]
+  categorias              categorias?               @relation(fields: [id_categoria], references: [id_categoria], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model usuarios {
+  usuario_id              Int                       @id @default(autoincrement())
+  nombre_completo         String?                   @db.VarChar(255)
+  correo_electronico      String?                   @unique @db.VarChar(255)
+  clave                   String?                   @db.VarChar(255)
+  telefono_contacto       String?                   @db.VarChar(20)
+  direccion_domicilio     String?
+  fecha_registro          DateTime?                 @default(now()) @db.Timestamp(6)
+  fecha_nacimiento        DateTime?                 @db.Date
+  carritocompras          carritocompras[]
+  comentariosvaloraciones comentariosvaloraciones[]
+}
